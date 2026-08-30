@@ -14,7 +14,7 @@ const R = (x, y, width, height) => ({x, y, width, height});
 const shown = [];
 const wm = {
     hide: w => w.minimize(),
-    show: w => { shown.push(w); w.unminimize(); },
+    show: w => { shown.push([w, w.minimized]); w.unminimize(); },
     unmaximize: w => w.unmaximize(),
     unfullscreen: w => w.unmake_fullscreen(),
 };
@@ -66,9 +66,10 @@ const makeGroup = (windows, focused = windows[0]) =>
     const group = makeGroup([a, b]);
     a.userSetRect(R(380, 300, 860, 600));
     shown.length = 0;
-    b.activate(0);
+    group.activate(b);
     flushAll([a, b]);
-    check('switch: show hook armed for the activated window', shown.includes(b));
+    check('switch: show hook runs while the tab is still minimized',
+        shown.some(([w, wasMinimized]) => w === b && wasMinimized), JSON.stringify(shown.map(([w, m]) => [w.name, m])));
     check('switch: new tab shown and un-maximized', !b.minimized && !b.is_maximized());
     check('switch: new tab placed at the frame once', b.requests.length === 1 && same(b.rect, a.rect),
         JSON.stringify([b.requests, b.rect, a.rect]));

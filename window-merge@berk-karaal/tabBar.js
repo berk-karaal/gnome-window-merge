@@ -118,7 +118,7 @@ export class TabBar {
             this._actor.disconnect(releaseId);
             grab.dismiss();
             if (!dragging)
-                window.activate(global.get_current_time());
+                this._group.activate(window);
             return Clutter.EVENT_STOP;
         });
         return Clutter.EVENT_STOP;

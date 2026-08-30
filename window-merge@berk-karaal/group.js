@@ -41,6 +41,12 @@ export class Group {
 
     add(window) {
         this._attach(window);
+        this.activate(window);
+    }
+
+    // Mutter unminimizes inside activate() and starts the effect right there,
+    // so the window is shown silently before it is activated.
+    activate(window) {
         this._activate(window);
         window.activate(global.get_current_time());
     }
@@ -120,10 +126,6 @@ export class Group {
     // Make a window visible at the group frame. Grouped windows are never
     // maximized or fullscreen: Mutter would pin them to the whole work area
     // and leave no band for the strip.
-    // Activating a hidden window makes Mutter unminimize it before our focus
-    // handler runs, so the show hook is called for every window the group hid
-    // even when it is no longer minimized: the unminimize effect is still
-    // pending and the hook keeps it silent.
     _show(w, place = true) {
         if (w.is_fullscreen())
             this._wm.unfullscreen(w);
@@ -152,10 +154,8 @@ export class Group {
     _activateNext(index) {
         const next = this.windows[Math.min(index, this.windows.length - 1)];
         this.active = null;
-        if (!next)
-            return;
-        this._activate(next);
-        next.activate(global.get_current_time());
+        if (next)
+            this.activate(next);
     }
 
     _onUnmanaged(w) {
