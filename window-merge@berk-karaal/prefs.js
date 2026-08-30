@@ -13,6 +13,20 @@ export default class WindowMergePreferences extends ExtensionPreferences {
         page.add(group);
         group.add(new ShortcutRow(settings, 'merge-toggle', 'Merge / ungroup'));
         group.add(new ShortcutRow(settings, 'detach', 'Detach focused tab'));
+
+        const about = new Adw.PreferencesGroup();
+        const repo = new Adw.ActionRow({
+            title: 'Source code',
+            subtitle: this.metadata.url.replace(/^https?:\/\//, ''),
+            activatable: true,
+        });
+        repo.add_suffix(new Gtk.Image({icon_name: 'adw-external-link-symbolic'}));
+        repo.connect('activated', () => {
+            new Gtk.UriLauncher({uri: this.metadata.url}).launch(window, null, null);
+        });
+        about.add(repo);
+        page.add(about);
+
         window.add(page);
     }
 }
