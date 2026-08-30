@@ -11,6 +11,7 @@ check:
 
 test:
 	gjs -m tests/layout.test.js
+	gjs -m tests/group.test.js
 
 install: schemas check
 	rm -rf $(DEST)

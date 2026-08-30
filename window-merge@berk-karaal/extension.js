@@ -130,7 +130,7 @@ export default class WindowMergeExtension extends Extension {
                 this._dissolve(group);
             else
                 bar.sync();
-        });
+        }, global.display);
         bar = new TabBar(group);
         this._groups.set(group, bar);
     }
