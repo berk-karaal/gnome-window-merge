@@ -37,9 +37,16 @@ Then log out and back in (Wayland) and run `gnome-extensions enable window-merge
 
 ## Develop
 
-    make test     # unit tests for layout.js
+    make test     # unit tests (gjs)
     make check    # syntax-check all modules
     make nested   # install and run a nested shell for trying changes
+    make zip      # build the extensions.gnome.org upload bundle
+
+## Release
+
+CI runs the checks and tests on every push and builds the zip. Pushing a tag
+such as `v1.0` also creates a GitHub Release with the zip attached; upload
+that zip to https://extensions.gnome.org/upload/ by hand.
 
 ## License
 
