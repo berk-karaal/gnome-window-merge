@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 import Adw from 'gi://Adw';
 import Gdk from 'gi://Gdk';
+import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
@@ -16,14 +17,11 @@ export default class WindowMergePreferences extends ExtensionPreferences {
 
         const about = new Adw.PreferencesGroup();
         const repo = new Adw.ActionRow({
-            title: 'Source code',
-            subtitle: this.metadata.url.replace(/^https?:\/\//, ''),
+            title: `GitHub: ${this.metadata.url.replace(/^https?:\/\/github\.com\//, '')}`,
             activatable: true,
         });
         repo.add_suffix(new Gtk.Image({icon_name: 'adw-external-link-symbolic'}));
-        repo.connect('activated', () => {
-            new Gtk.UriLauncher({uri: this.metadata.url}).launch(window, null, null);
-        });
+        repo.connect('activated', () => Gio.AppInfo.launch_default_for_uri(this.metadata.url, null));
         about.add(repo);
         page.add(about);
 
