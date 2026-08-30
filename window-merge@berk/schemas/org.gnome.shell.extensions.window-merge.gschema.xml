@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.window-merge" path="/org/gnome/shell/extensions/window-merge/">
+    <key name="merge-toggle" type="as">
+      <default><![CDATA[['<Super>m']]]></default>
+      <summary>Merge all windows of the focused app, or ungroup</summary>
+    </key>
+    <key name="detach" type="as">
+      <default><![CDATA[['<Super><Shift>m']]]></default>
+      <summary>Detach the focused tab into a normal window</summary>
+    </key>
+  </schema>
+</schemalist>
