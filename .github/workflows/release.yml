@@ -1,0 +1,25 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install gjs and GLib tools
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gjs libglib2.0-bin zip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: make check
+      - run: make test
+      - run: make zip
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: window-merge@berk-karaal.zip
+          generate_release_notes: true

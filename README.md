@@ -44,8 +44,9 @@ Then log out and back in (Wayland) and run `gnome-extensions enable window-merge
 
 ## Release
 
-CI runs the checks and tests on every push and builds the zip. Pushing a tag
-such as `v1.0` also creates a GitHub Release with the zip attached; upload
+CI runs the checks and tests on every push. Pushing a tag
+such as `v1.0` runs them again, builds the zip and creates a GitHub Release
+with it attached; upload
 that zip to https://extensions.gnome.org/upload/ by hand.
 
 ## License
