@@ -18,18 +18,9 @@ Both are editable in the extension preferences.
 
 ## Behaviour
 
-- Tabs are equal width and fill the strip; drag a tab sideways to reorder it.
-- Click a tab to switch, middle-click a tab to close that window.
-- Only the active tab is visible; the others are minimized until selected, so moving and resizing costs nothing extra. Maximizing fills the work area below the strip.
+- Click a tab to switch, drag it sideways to reorder, middle-click to close that window.
 - Merge pulls the app's windows in from every workspace; new windows of the app join the group automatically.
 - Alt+Tab and the overview keep showing every window.
-
-## Limitations
-
-- Activating a hidden tab from Alt+Tab, the overview or a notification plays
-  GNOME's normal unminimize animation; switching from the tab strip does not.
-- Inactive tabs show up as minimized windows in Alt+Tab, the overview and docks.
-- One group per app; groups do not survive logging out.
 
 ## Install
 
@@ -55,9 +46,7 @@ Then log out and back in and run `gnome-extensions enable window-merge@berk-kara
 
 ### Update
 
-Repeat the same steps with the new zip or a fresh `git pull` — `--force` and
-`just install` both replace the installed copy — then log out and back in.
-The extension stays enabled and your shortcuts are kept.
+Same steps as install, then log out and back in.
 
 ## Develop
 
@@ -68,10 +57,9 @@ The extension stays enabled and your shortcuts are kept.
 
 ## Release
 
-CI runs the checks and tests on every push. Pushing a tag
-such as `v1.0` runs them again, builds the zip and creates a GitHub Release
-with it attached; upload
-that zip to https://extensions.gnome.org/upload/ by hand.
+CI runs the checks and tests on every push. Pushing a tag such as `v1.0`
+runs them again, builds the zip and creates a GitHub Release with it attached;
+upload that zip to https://extensions.gnome.org/upload/ by hand.
 
 ## License
 
