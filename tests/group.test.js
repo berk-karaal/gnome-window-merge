@@ -11,7 +11,12 @@ function check(name, ok, detail = '') {
 }
 const same = (a, b) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 const R = (x, y, width, height) => ({x, y, width, height});
-const wm = {hide: w => w.minimize(), show: w => w.unminimize()};
+const wm = {
+    hide: w => w.minimize(),
+    show: w => w.unminimize(),
+    unmaximize: w => w.unmaximize(),
+    unfullscreen: w => w.unmake_fullscreen(),
+};
 const makeGroup = (windows, focused = windows[0]) =>
     new Group('code.desktop', windows, focused, () => {}, wm);
 

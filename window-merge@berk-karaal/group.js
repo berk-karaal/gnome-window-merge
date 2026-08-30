@@ -115,9 +115,9 @@ export class Group {
     // and leave no band for the strip.
     _show(w) {
         if (w.is_fullscreen())
-            w.unmake_fullscreen();
+            this._wm.unfullscreen(w);
         if (isMaximized(w))
-            w.unmaximize();
+            this._wm.unmaximize(w);
         this._wm.show(w);
         const {x, y, width, height} = this.frame;
         if (!sameRect(w.get_frame_rect(), this.frame))

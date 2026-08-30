@@ -8,20 +8,27 @@ import {TabBar} from './tabBar.js';
 
 const DETACH_OFFSET = 48;
 
-// Hide and show members without the minimize animation, so switching tabs
-// looks like a tab switch rather than a window animation.
+// Change member state without the Shell's window animations, so switching
+// tabs looks like a tab switch rather than a window animation.
+function silently(window, change) {
+    Main.wm.skipNextEffect(window.get_compositor_private());
+    change();
+}
+
 const windowEffects = {
     hide(window) {
-        if (window.minimized)
-            return;
-        Main.wm.skipNextEffect(window.get_compositor_private());
-        window.minimize();
+        if (!window.minimized)
+            silently(window, () => window.minimize());
     },
     show(window) {
-        if (!window.minimized)
-            return;
-        Main.wm.skipNextEffect(window.get_compositor_private());
-        window.unminimize();
+        if (window.minimized)
+            silently(window, () => window.unminimize());
+    },
+    unmaximize(window) {
+        silently(window, () => window.unmaximize());
+    },
+    unfullscreen(window) {
+        silently(window, () => window.unmake_fullscreen());
     },
 };
 
