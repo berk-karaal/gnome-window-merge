@@ -64,27 +64,31 @@ export class TabBar {
             reactive: true,
             track_hover: true,
             x_expand: true,
+            y_expand: true,
         });
         if (window === this._group.active)
             tab.add_style_pseudo_class('active');
 
-        const close = new St.Button({
-            style_class: 'window-merge-close',
-            child: new St.Icon({icon_name: 'window-close-symbolic', icon_size: 12}),
-        });
-        close.connect('clicked', () => window.delete(global.get_current_time()));
-
         const app = Shell.WindowTracker.get_default().get_window_app(window);
         const icon = app ? app.create_icon_texture(14) : new St.Icon({icon_name: 'window-new-symbolic', icon_size: 14});
+        icon.y_align = Clutter.ActorAlign.CENTER;
 
-        const label = new St.Label({text: window.get_title() ?? '', style_class: 'window-merge-label'});
+        const label = new St.Label({
+            text: window.get_title() ?? '',
+            style_class: 'window-merge-label',
+            y_align: Clutter.ActorAlign.CENTER,
+        });
         label.clutter_text.ellipsize = Pango.EllipsizeMode.END;
 
-        const center = new St.BoxLayout({style_class: 'window-merge-center', x_expand: true, x_align: Clutter.ActorAlign.CENTER});
+        const center = new St.BoxLayout({
+            style_class: 'window-merge-center',
+            x_expand: true,
+            y_expand: true,
+            x_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.CENTER,
+        });
         center.add_child(icon);
         center.add_child(label);
-
-        tab.add_child(close);
         tab.add_child(center);
 
         tab.connect('button-press-event', (_a, event) => this._onPress(window, event));

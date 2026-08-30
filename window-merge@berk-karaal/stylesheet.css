@@ -25,24 +25,6 @@
     color: #e8ecf2;
 }
 
-.window-merge-close {
-    width: 16px;
-    height: 16px;
-    margin: 0 4px;
-    border-radius: 4px;
-    color: #e8ecf2;
-    opacity: 0;
-}
-
-.window-merge-tab:hover .window-merge-close {
-    opacity: 0.7;
-}
-
-.window-merge-close:hover {
-    background-color: #555555;
-    opacity: 1;
-}
-
 .window-merge-center {
     spacing: 6px;
     padding: 0 8px;
