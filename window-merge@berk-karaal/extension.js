@@ -1,3 +1,4 @@
+import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
@@ -36,12 +37,16 @@ export default class WindowMergeExtension extends Extension {
         Main.wm.addKeybinding('detach', this._settings,
             Meta.KeyBindingFlags.IGNORE_AUTOREPEAT, modes, () => this._detach());
 
+        this._pendingJoins = new Set();
         this._windowCreatedId = global.display.connect('window-created',
             (_d, window) => this._onWindowCreated(window));
     }
 
     disable() {
         global.display.disconnect(this._windowCreatedId);
+        for (const id of this._pendingJoins)
+            GLib.Source.remove(id);
+        this._pendingJoins = null;
         Main.wm.removeKeybinding('merge-toggle');
         Main.wm.removeKeybinding('detach');
         for (const group of [...this._groups.keys()])
@@ -121,21 +126,36 @@ export default class WindowMergeExtension extends Extension {
         focused.activate(global.get_current_time());
     }
 
+    // first-frame is emitted from the compositor's after-paint hook, while a
+    // frame is still in progress. Changing window visibility there (minimize,
+    // raise) trips a Mutter assertion and aborts the Shell, so the join runs
+    // on the next idle.
     _onWindowCreated(window) {
         const actor = window.get_compositor_private();
         if (!actor)
             return;
         const id = actor.connect('first-frame', () => {
             actor.disconnect(id);
-            if (!this._groups || !this._eligible(window))
+            if (!this._pendingJoins)
                 return;
-            const group = this._groupFor(this._appId(window));
-            if (!group)
-                return;
-            if (window.get_workspace() !== group.workspace)
-                window.change_workspace(group.workspace);
-            group.add(window);
+            const source = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                this._pendingJoins.delete(source);
+                this._autoJoin(window);
+                return GLib.SOURCE_REMOVE;
+            });
+            this._pendingJoins.add(source);
         });
+    }
+
+    _autoJoin(window) {
+        if (!this._eligible(window))
+            return;
+        const group = this._groupFor(this._appId(window));
+        if (!group || group.contains(window))
+            return;
+        if (window.get_workspace() !== group.workspace)
+            window.change_workspace(group.workspace);
+        group.add(window);
     }
 
     _create(appId, windows, focused) {
