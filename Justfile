@@ -35,3 +35,7 @@ nested: install
 # Build the extensions.gnome.org upload bundle
 zip: schemas
     cd {{uuid}} && zip -r ../{{uuid}}.zip . -x '*.compiled'
+
+# Run the extensions.gnome.org static analyzer on the upload bundle (pip install shexli)
+lint: zip
+    shexli {{uuid}}.zip

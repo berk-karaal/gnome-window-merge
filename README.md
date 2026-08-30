@@ -54,6 +54,7 @@ Same steps as install, then log out and back in.
     just check    # syntax-check all modules
     just nested   # install and run a nested shell for trying changes
     just zip      # build the extensions.gnome.org upload bundle
+    just lint     # run shexli, the extensions.gnome.org analyzer, on the bundle
 
 ## Release
 

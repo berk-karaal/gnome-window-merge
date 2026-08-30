@@ -33,8 +33,11 @@ shell (`sudo dnf install mutter-devkit` on Fedora).
 just            # list recipes
 just check      # syntax-check every module
 just test       # unit tests
+just lint       # build the zip and run shexli, the extensions.gnome.org analyzer
 just nested     # install and open a nested GNOME Shell with the extension
 ```
+
+`just lint` needs `pip install shexli`.
 
 Wayland loads extension code once per login, so use `just nested` for
 iteration: apps opened from inside the nested shell run there, and a crash only
@@ -79,7 +82,7 @@ passed in by `extension.js`, so it can be tested with the fake Mutter in
 ## Submitting a pull request
 
 1. Keep the change focused; one topic per pull request.
-2. `just check` and `just test` pass (CI runs both).
+2. `just check`, `just test` and `just lint` pass (CI runs all three).
 3. Describe what you verified manually and how.
 4. Use plain, descriptive commit messages in the imperative mood.
 
