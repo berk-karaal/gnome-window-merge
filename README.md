@@ -47,22 +47,22 @@ Log out and back in (Wayland loads extensions at login), then:
 
     git clone https://github.com/berk-karaal/gnome-window-merge.git
     cd gnome-window-merge
-    make install
+    just install
 
 Then log out and back in and run `gnome-extensions enable window-merge@berk-karaal`.
 
 ### Update
 
 Repeat the same steps with the new zip or a fresh `git pull` — `--force` and
-`make install` both replace the installed copy — then log out and back in.
+`just install` both replace the installed copy — then log out and back in.
 The extension stays enabled and your shortcuts are kept.
 
 ## Develop
 
-    make test     # unit tests (gjs)
-    make check    # syntax-check all modules
-    make nested   # install and run a nested shell for trying changes
-    make zip      # build the extensions.gnome.org upload bundle
+    just test     # unit tests (gjs)
+    just check    # syntax-check all modules
+    just nested   # install and run a nested shell for trying changes
+    just zip      # build the extensions.gnome.org upload bundle
 
 ## Release
 

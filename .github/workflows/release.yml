@@ -16,9 +16,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: make check
-      - run: make test
-      - run: make zip
+      - uses: extractions/setup-just@v3
+      - run: just check
+      - run: just test
+      - run: just zip
       - uses: softprops/action-gh-release@v2
         with:
           files: window-merge@berk-karaal.zip

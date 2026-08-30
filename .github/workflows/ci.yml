@@ -15,5 +15,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: make check
-      - run: make test
+      - uses: extractions/setup-just@v3
+      - run: just check
+      - run: just test
