@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 import {fillRect, clampFrame} from './layout.js';
 
 // Edge tiling maximizes only one axis; either axis pins the window.

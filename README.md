@@ -22,6 +22,13 @@ Both are editable in the extension preferences.
 - Merge pulls the app's windows in from every workspace; new windows of the app join the group automatically.
 - Alt+Tab and the overview keep showing every window.
 
+## Limitations
+
+- Activating a hidden tab from Alt+Tab, the overview or a notification plays
+  GNOME's normal unminimize animation; switching from the tab strip does not.
+- Inactive tabs show up as minimized windows in Alt+Tab, the overview and docks.
+- One group per app; groups do not survive logging out.
+
 ## Install
 
     make install
@@ -33,3 +40,7 @@ Then log out and back in (Wayland) and run `gnome-extensions enable window-merge
     make test     # unit tests for layout.js
     make check    # syntax-check all modules
     make nested   # install and run a nested shell for trying changes
+
+## License
+
+GPL-2.0-or-later. See `LICENSE`.

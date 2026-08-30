@@ -2,7 +2,9 @@
   "uuid": "window-merge@berk-karaal",
   "name": "Window Merge",
   "description": "Merge all windows of an app into one tabbed frame, macOS style.",
-  "shell-version": ["50"],
+  "shell-version": [
+    "50"
+  ],
   "settings-schema": "org.gnome.shell.extensions.window-merge",
-  "url": ""
+  "url": "https://github.com/berk-karaal/gnome-window-merge"
 }
