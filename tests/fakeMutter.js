@@ -101,7 +101,9 @@ export class FakeWindow extends Emitter {
         this.emit('notify::minimized');
     }
 
+    // Like Mutter: activating a minimized window unminimizes it first.
     activate(_time) {
+        this.unminimize();
         this.emit('focus');
     }
 

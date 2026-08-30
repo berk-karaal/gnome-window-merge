@@ -20,6 +20,7 @@ export class Group {
         this._onChange = onChange;
         this._wm = wm;
         this._signals = [];
+        this._hidden = new Set(); // members minimized by the group
 
         this.frame = isMaximized(focused) || focused.is_fullscreen()
             ? fillRect(focused.get_work_area_current_monitor())
@@ -29,7 +30,7 @@ export class Group {
         this._show(focused);
         for (const w of this.windows) {
             if (w !== focused)
-                this._wm.hide(w);
+                this._hide(w);
         }
         this._changed();
     }
@@ -67,7 +68,7 @@ export class Group {
             obj.disconnect(id);
         this._signals = [];
         for (const w of this.windows)
-            this._wm.show(w);
+            this._show(w, false);
         this.windows = [];
         this._onChange = null;
     }
@@ -96,6 +97,7 @@ export class Group {
 
     _detach(w) {
         this.windows = this.windows.filter(x => x !== w);
+        this._hidden.delete(w);
         this._signals = this._signals.filter(([obj, id]) => {
             if (obj !== w)
                 return true;
@@ -110,15 +112,27 @@ export class Group {
             w.get_work_area_current_monitor());
     }
 
+    _hide(w) {
+        this._hidden.add(w);
+        this._wm.hide(w);
+    }
+
     // Make a window visible at the group frame. Grouped windows are never
     // maximized or fullscreen: Mutter would pin them to the whole work area
     // and leave no band for the strip.
-    _show(w) {
+    // Activating a hidden window makes Mutter unminimize it before our focus
+    // handler runs, so the show hook is called for every window the group hid
+    // even when it is no longer minimized: the unminimize effect is still
+    // pending and the hook keeps it silent.
+    _show(w, place = true) {
         if (w.is_fullscreen())
             this._wm.unfullscreen(w);
         if (isMaximized(w))
             this._wm.unmaximize(w);
-        this._wm.show(w);
+        if (this._hidden.delete(w) || w.minimized)
+            this._wm.show(w);
+        if (!place)
+            return;
         const {x, y, width, height} = this.frame;
         if (!sameRect(w.get_frame_rect(), this.frame))
             w.move_resize_frame(true, x, y, width, height);
@@ -131,7 +145,7 @@ export class Group {
         this.active = w;
         this._show(w);
         if (previous && this.contains(previous))
-            this._wm.hide(previous);
+            this._hide(previous);
         this._changed();
     }
 

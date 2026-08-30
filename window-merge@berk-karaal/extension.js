@@ -21,8 +21,10 @@ const windowEffects = {
             silently(window, () => window.minimize());
     },
     show(window) {
-        if (window.minimized)
-            silently(window, () => window.unminimize());
+        silently(window, () => {
+            if (window.minimized)
+                window.unminimize();
+        });
     },
     unmaximize(window) {
         silently(window, () => window.unmaximize());
