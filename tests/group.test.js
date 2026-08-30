@@ -75,7 +75,22 @@ function makeGroup(windows, focused = windows[0]) {
     group.destroy();
 }
 
-// 4. Cleanup disconnects everything.
+// 4. A full-width group dragged partly off screen keeps its followers with it.
+{
+    const a = new FakeWindow('a', R(0, 62, 1920, 1018));
+    const b = new FakeWindow('b', R(0, 62, 1920, 1018));
+    const {group, display} = makeGroup([a, b]);
+    flushAll([a, b]);
+    display.emit('grab-op-begin', a, 'move');
+    a.userSetRect(R(380, 300, 1920, 1018));
+    display.emit('grab-op-end', a, 'move');
+    flushAll([a, b]);
+    check('offscreen move: follower is not clamped back', same(a.rect, b.rect),
+        JSON.stringify([a.rect, b.rect]));
+    group.destroy();
+}
+
+// 5. Cleanup disconnects everything.
 {
     const a = new FakeWindow('a', R(0, 100, 10, 10));
     const b = new FakeWindow('b', R(0, 100, 10, 10));

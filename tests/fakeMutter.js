@@ -56,10 +56,17 @@ export class FakeWindow extends Emitter {
     is_fullscreen() { return this._fullscreen; }
     get_title() { return this.name; }
 
-    move_resize_frame(_userOp, x, y, width, height) {
+    move_resize_frame(userOp, x, y, width, height) {
         this.requests.push({x, y, width, height});
         if (this._maximized || this._fullscreen)
             return; // Mutter's constraints keep the window filling the work area
+        if (!userOp) {
+            // Mutter keeps non-user placements fully on screen.
+            const right = WORK_AREA.x + WORK_AREA.width;
+            const bottom = WORK_AREA.y + WORK_AREA.height;
+            x = Math.max(WORK_AREA.x, Math.min(x, right - width));
+            y = Math.max(WORK_AREA.y, Math.min(y, bottom - height));
+        }
         this._queue.push({x, y, width, height});
     }
 

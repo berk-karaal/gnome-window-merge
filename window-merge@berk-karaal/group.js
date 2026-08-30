@@ -132,7 +132,7 @@ export class Group {
             if (w === except)
                 continue;
             this._requested.set(w, {x, y, width, height});
-            w.move_resize_frame(false, x, y, width, height);
+            w.move_resize_frame(true, x, y, width, height);
         }
     }
 
