@@ -1,1 +1,53 @@
-/* Window Merge tab strip styles */
+.window-merge-strip {
+    background-color: #2a2a2b;
+    border-radius: 10px 10px 0 0;
+    border-bottom: 1px solid #1a1a1a;
+}
+
+.window-merge-tab {
+    background-color: #2a2a2b;
+    color: #9aa5b5;
+    font-size: 9.5pt;
+    border-right: 1px solid #1c1c1d;
+}
+
+.window-merge-tab:last-child {
+    border-right: none;
+}
+
+.window-merge-tab:hover {
+    background-color: #333334;
+    color: #e8ecf2;
+}
+
+.window-merge-tab:active {
+    background-color: #3c3c3d;
+    color: #e8ecf2;
+}
+
+.window-merge-close {
+    width: 16px;
+    height: 16px;
+    margin: 0 4px;
+    border-radius: 4px;
+    color: #e8ecf2;
+    opacity: 0;
+}
+
+.window-merge-tab:hover .window-merge-close {
+    opacity: 0.7;
+}
+
+.window-merge-close:hover {
+    background-color: #555555;
+    opacity: 1;
+}
+
+.window-merge-center {
+    spacing: 6px;
+    padding: 0 8px;
+}
+
+.window-merge-label {
+    max-width: 240px;
+}
