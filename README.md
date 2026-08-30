@@ -31,9 +31,25 @@ Both are editable in the extension preferences.
 
 ## Install
 
+### From a release zip
+
+Download `window-merge@berk-karaal.zip` from the
+[latest release](https://github.com/berk-karaal/gnome-window-merge/releases/latest),
+then:
+
+    gnome-extensions install --force window-merge@berk-karaal.zip
+
+Log out and back in (Wayland loads extensions at login), then:
+
+    gnome-extensions enable window-merge@berk-karaal
+
+### From source
+
+    git clone https://github.com/berk-karaal/gnome-window-merge.git
+    cd gnome-window-merge
     make install
 
-Then log out and back in (Wayland) and run `gnome-extensions enable window-merge@berk-karaal`.
+Then log out and back in and run `gnome-extensions enable window-merge@berk-karaal`.
 
 ## Develop
 
