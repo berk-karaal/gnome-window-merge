@@ -5,6 +5,8 @@ Press `Super+M` and every window of the focused app, from every workspace,
 becomes a tab in one shared frame on the current workspace, with a tab strip
 above the window.
 
+![Merging four VS Code windows into one tabbed frame](docs/demo.gif)
+
 ## Shortcuts
 
 | Shortcut | Action |
