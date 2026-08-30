@@ -1,6 +1,6 @@
 # Window Merge
 
-GNOME Shell 50 extension that brings macOS "Merge All Windows" to GNOME.
+GNOME Shell extension (GNOME 50 and newer) that brings macOS "Merge All Windows" to GNOME.
 Press `Super+M` and every window of the focused app, from every workspace,
 becomes a tab in one shared frame on the current workspace, with a tab strip
 above the window.

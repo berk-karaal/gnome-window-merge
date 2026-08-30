@@ -25,7 +25,7 @@ require patching GNOME Shell internals are unlikely to be accepted.
 
 ## Development setup
 
-Requirements: GNOME Shell 50 on Wayland, `gjs`, `node` (syntax checking),
+Requirements: GNOME Shell 50 or newer on Wayland, `gjs`, `node` (syntax checking),
 [`just`](https://just.systems), and the `mutter-devkit` package for the nested
 shell (`sudo dnf install mutter-devkit` on Fedora).
 
@@ -67,9 +67,10 @@ passed in by `extension.js`, so it can be tested with the fake Mutter in
 - **Window state changes made by the group go through the hooks in
   `extension.js`** (`hide`, `show`, `unmaximize`, `unfullscreen`) so the
   Shell's animations are skipped consistently.
-- **Only GNOME Shell 50 is supported.** No compatibility branches for older
-  versions; `shell-version` in `metadata.json` is updated after each release
-  is tested.
+- **GNOME Shell 50 and newer are supported; older versions are not.** No
+  compatibility branches for anything before 50. Each new GNOME release is
+  tested and then added to `shell-version` in `metadata.json` — the Shell
+  refuses to load an extension that does not list the running version.
 - Add or update a test in `tests/` for any change to `group.js` or
   `layout.js`. The fake window models Wayland's asynchronous geometry, Mutter's
   on-screen constraints and `activate()` semantics; extend it rather than
