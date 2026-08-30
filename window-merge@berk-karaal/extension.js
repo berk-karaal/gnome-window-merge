@@ -7,6 +7,23 @@ import {TabBar} from './tabBar.js';
 
 const DETACH_OFFSET = 48;
 
+// Hide and show members without the minimize animation, so switching tabs
+// looks like a tab switch rather than a window animation.
+const windowEffects = {
+    hide(window) {
+        if (window.minimized)
+            return;
+        Main.wm.skipNextEffect(window.get_compositor_private());
+        window.minimize();
+    },
+    show(window) {
+        if (!window.minimized)
+            return;
+        Main.wm.skipNextEffect(window.get_compositor_private());
+        window.unminimize();
+    },
+};
+
 export default class WindowMergeExtension extends Extension {
     enable() {
         this._settings = this.getSettings();
@@ -130,7 +147,7 @@ export default class WindowMergeExtension extends Extension {
                 this._dissolve(group);
             else
                 bar.sync();
-        }, global.display);
+        }, windowEffects);
         bar = new TabBar(group);
         this._groups.set(group, bar);
     }

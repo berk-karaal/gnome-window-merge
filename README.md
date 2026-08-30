@@ -18,7 +18,7 @@ Both are editable in the extension preferences.
 
 - Tabs are equal width and fill the strip; drag a tab sideways to reorder it.
 - Click a tab to switch, middle-click or use the × to close that window.
-- Moving, resizing or maximizing one member applies to the whole group.
+- Only the active tab is visible; the others are minimized until selected, so moving and resizing costs nothing extra. Maximizing fills the work area below the strip.
 - Merge pulls the app's windows in from every workspace; new windows of the app join the group automatically.
 - Alt+Tab and the overview keep showing every window.
 

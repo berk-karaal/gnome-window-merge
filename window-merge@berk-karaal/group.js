@@ -9,29 +9,28 @@ function sameRect(a, b) {
     return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 }
 
+// Only the active member is visible; the others stay minimized until their
+// tab is activated, so nothing has to follow the active window's geometry.
 export class Group {
-    constructor(appId, windows, focused, onChange, display) {
+    constructor(appId, windows, focused, onChange, wm) {
         this.appId = appId;
         this.windows = [];
         this.active = focused;
         this.workspace = focused.get_workspace();
         this._onChange = onChange;
+        this._wm = wm;
         this._signals = [];
-        // Window -> rect we asked it to take. Until the window reports that
-        // rect, its geometry signals are compositor echoes, not user input.
-        this._requested = new Map();
-        this._grabbed = null;
 
-        this._connect(display, 'grab-op-begin', (_d, window) => this._onGrabBegin(window));
-        this._connect(display, 'grab-op-end', (_d, window) => this._onGrabEnd(window));
-
-        const wasFilling = isMaximized(focused) || focused.is_fullscreen();
-        for (const w of windows)
-            this._attach(w);
-        this.frame = wasFilling
+        this.frame = isMaximized(focused) || focused.is_fullscreen()
             ? fillRect(focused.get_work_area_current_monitor())
             : this._frameFor(focused);
-        this._applyFrame();
+        for (const w of windows)
+            this._attach(w);
+        this._show(focused);
+        for (const w of this.windows) {
+            if (w !== focused)
+                this._wm.hide(w);
+        }
         this._changed();
     }
 
@@ -41,19 +40,16 @@ export class Group {
 
     add(window) {
         this._attach(window);
-        this._applyFrame();
-        this.setActive(window);
+        this._activate(window);
+        window.activate(global.get_current_time());
     }
 
+    // Take a window out of the group, leaving it visible where the group was.
     remove(window) {
         this._detach(window);
+        this._show(window);
         if (this.active === window)
-            this.active = this.windows[0] ?? null;
-        this._changed();
-    }
-
-    setActive(window) {
-        this.active = window;
+            this._activateNext(0);
         this._changed();
     }
 
@@ -70,7 +66,8 @@ export class Group {
         for (const [obj, id] of this._signals)
             obj.disconnect(id);
         this._signals = [];
-        this._requested.clear();
+        for (const w of this.windows)
+            this._wm.show(w);
         this.windows = [];
         this._onChange = null;
     }
@@ -85,7 +82,6 @@ export class Group {
 
     _attach(w) {
         this.windows.push(w);
-        this._normalize(w);
         this._connect(w, 'position-changed', () => this._onGeometry(w));
         this._connect(w, 'size-changed', () => this._onGeometry(w));
         this._connect(w, 'notify::maximized-horizontally', () => this._onMaximize(w));
@@ -94,15 +90,12 @@ export class Group {
         this._connect(w, 'notify::fullscreen', () => this._onFullscreen(w));
         this._connect(w, 'notify::title', () => this._changed());
         this._connect(w, 'workspace-changed', () => this._onWorkspace(w));
-        this._connect(w, 'focus', () => this.setActive(w));
-        this._connect(w, 'unmanaged', () => this.remove(w));
+        this._connect(w, 'focus', () => this._activate(w));
+        this._connect(w, 'unmanaged', () => this._onUnmanaged(w));
     }
 
     _detach(w) {
         this.windows = this.windows.filter(x => x !== w);
-        this._requested.delete(w);
-        if (this._grabbed === w)
-            this._grabbed = null;
         this._signals = this._signals.filter(([obj, id]) => {
             if (obj !== w)
                 return true;
@@ -111,74 +104,74 @@ export class Group {
         });
     }
 
-    // Grouped windows are never maximized or fullscreen: Mutter would pin them
-    // to the whole work area and ignore the frame, leaving no band for the strip.
-    _normalize(w) {
-        if (w.is_fullscreen())
-            w.unmake_fullscreen();
-        if (isMaximized(w))
-            w.unmaximize();
-    }
-
     _frameFor(w) {
         const r = w.get_frame_rect();
         return clampFrame({x: r.x, y: r.y, width: r.width, height: r.height},
             w.get_work_area_current_monitor());
     }
 
-    _applyFrame(except = null) {
+    // Make a window visible at the group frame. Grouped windows are never
+    // maximized or fullscreen: Mutter would pin them to the whole work area
+    // and leave no band for the strip.
+    _show(w) {
+        if (w.is_fullscreen())
+            w.unmake_fullscreen();
+        if (isMaximized(w))
+            w.unmaximize();
+        this._wm.show(w);
         const {x, y, width, height} = this.frame;
-        for (const w of this.windows) {
-            if (w === except)
-                continue;
-            this._requested.set(w, {x, y, width, height});
+        if (!sameRect(w.get_frame_rect(), this.frame))
             w.move_resize_frame(true, x, y, width, height);
-        }
+    }
+
+    _activate(w) {
+        if (w === this.active)
+            return;
+        const previous = this.active;
+        this.active = w;
+        this._show(w);
+        if (previous && this.contains(previous))
+            this._wm.hide(previous);
+        this._changed();
+    }
+
+    _activateNext(index) {
+        const next = this.windows[Math.min(index, this.windows.length - 1)];
+        this.active = null;
+        if (!next)
+            return;
+        this._activate(next);
+        next.activate(global.get_current_time());
+    }
+
+    _onUnmanaged(w) {
+        const index = this.windows.indexOf(w);
+        this._detach(w);
+        if (this.active === w)
+            this._activateNext(index);
+        this._changed();
     }
 
     _onGeometry(w) {
-        const rect = w.get_frame_rect();
-        const requested = this._requested.get(w);
-        if (requested) {
-            if (!sameRect(rect, requested) && w !== this._grabbed)
-                return; // still settling into what we asked for
-            this._requested.delete(w);
-        }
-        // Only the window the user is interacting with drives the group.
-        if (w !== this._grabbed && w !== this.active)
+        if (w !== this.active)
             return;
         const frame = this._frameFor(w);
         if (sameRect(frame, this.frame))
             return;
         this.frame = frame;
-        this._applyFrame(w);
         this._changed();
-    }
-
-    _onGrabBegin(window) {
-        if (!this.contains(window))
-            return;
-        this._grabbed = window;
-        this._requested.delete(window);
-    }
-
-    _onGrabEnd(window) {
-        if (this._grabbed !== window)
-            return;
-        this._onGeometry(window);
-        this._grabbed = null;
     }
 
     // "Maximize" inside a group means "fill the work area below the strip".
     _onMaximize(w) {
-        if (!isMaximized(w))
+        if (w !== this.active || !isMaximized(w))
             return;
         w.unmaximize();
         this._fill(w);
     }
 
     _onFullscreen(w) {
-        if (w.is_fullscreen()) {
+        if (w === this.active && w.is_fullscreen()) {
             w.unmake_fullscreen();
             this._fill(w);
         }
@@ -187,7 +180,8 @@ export class Group {
 
     _fill(w) {
         this.frame = fillRect(w.get_work_area_current_monitor());
-        this._applyFrame();
+        const {x, y, width, height} = this.frame;
+        w.move_resize_frame(true, x, y, width, height);
         this._changed();
     }
 

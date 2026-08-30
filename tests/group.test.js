@@ -1,6 +1,8 @@
 import {Group} from '../window-merge@berk-karaal/group.js';
 import {fillRect} from '../window-merge@berk-karaal/layout.js';
-import {FakeWindow, FakeDisplay, WORK_AREA, flushAll} from './fakeMutter.js';
+import {FakeWindow, WORK_AREA, flushAll} from './fakeMutter.js';
+
+globalThis.global = {get_current_time: () => 0};
 
 let failed = 0;
 function check(name, ok, detail = '') {
@@ -9,94 +11,89 @@ function check(name, ok, detail = '') {
 }
 const same = (a, b) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 const R = (x, y, width, height) => ({x, y, width, height});
+const wm = {hide: w => w.minimize(), show: w => w.unminimize()};
+const makeGroup = (windows, focused = windows[0]) =>
+    new Group('code.desktop', windows, focused, () => {}, wm);
 
-function makeGroup(windows, focused = windows[0]) {
-    const display = new FakeDisplay();
-    const group = new Group('code.desktop', windows, focused, () => {}, display);
-    return {group, display};
-}
-
-// 1. Merging maximized windows un-maximizes them and fills the work area below the strip.
-{
-    const a = new FakeWindow('a', R(10, 60, 800, 600), {maximized: true});
-    const b = new FakeWindow('b', R(30, 90, 700, 500), {maximized: true});
-    const {group} = makeGroup([a, b]);
-    flushAll([a, b]);
-    const want = fillRect(WORK_AREA);
-    check('merge: no member stays maximized', !a.is_maximized() && !b.is_maximized());
-    check('merge: members fill below strip', same(a.rect, want) && same(b.rect, want),
-        JSON.stringify([a.rect, b.rect]));
-    check('merge: group frame is fill rect', same(group.frame, want));
-    group.destroy();
-}
-
-// 2. Async echoes from other members never push geometry back onto the window being resized.
+// 1. Merging shows the focused window at its frame and hides the rest.
 {
     const a = new FakeWindow('a', R(100, 100, 800, 600));
     const b = new FakeWindow('b', R(300, 300, 500, 400));
     const c = new FakeWindow('c', R(500, 500, 400, 300));
-    const {group, display} = makeGroup([a, b, c]);
+    const group = makeGroup([a, b, c]);
     flushAll([a, b, c]);
-    a.requests.length = 0;
-
-    display.emit('grab-op-begin', a, 'resize');
-    a.userSetRect(R(100, 100, 820, 600));   // frame 1 of the drag
-    a.userSetRect(R(100, 100, 860, 600));   // frame 2: the user keeps dragging...
-    b.flush();                              // ...and only now does b ack frame 1
-    flushAll([a, b, c]);
-    display.emit('grab-op-end', a, 'resize');
-    flushAll([a, b, c]);
-
-    check('resize: dragged window is never resized by the group', a.requests.length === 0,
-        JSON.stringify(a.requests));
-    check('resize: followers end at the final size',
-        same(b.rect, a.rect) && same(c.rect, a.rect), JSON.stringify([a.rect, b.rect, c.rect]));
+    check('merge: active stays visible and untouched', !a.minimized && a.requests.length === 0);
+    check('merge: followers are hidden', b.minimized && c.minimized);
+    check('merge: followers are not resized while hidden', b.requests.length === 0 && c.requests.length === 0);
     group.destroy();
 }
 
-// 3. After "maximize" inside a group, dragging the active window moves the whole group.
+// 2. Merging maximized windows un-maximizes the active one into the fill frame.
+{
+    const a = new FakeWindow('a', R(10, 60, 800, 600), {maximized: true});
+    const b = new FakeWindow('b', R(30, 90, 700, 500), {maximized: true});
+    const group = makeGroup([a, b]);
+    flushAll([a, b]);
+    const want = fillRect(WORK_AREA);
+    check('maximized merge: active fills below the strip', !a.is_maximized() && same(a.rect, want),
+        JSON.stringify(a.rect));
+    check('maximized merge: frame is the fill rect', same(group.frame, want));
+    group.destroy();
+}
+
+// 3. Dragging the active window never touches the hidden followers.
 {
     const a = new FakeWindow('a', R(100, 100, 800, 600));
     const b = new FakeWindow('b', R(300, 300, 500, 400));
-    const {group, display} = makeGroup([a, b]);
-    flushAll([a, b]);
-
-    a._maximized = true; a.rect = {...WORK_AREA}; // user double-clicks the title bar
-    a.emit('notify::maximized-horizontally');
-    flushAll([a, b]);
-    check('maximize: no member is maximized afterwards', !a.is_maximized() && !b.is_maximized());
-
-    display.emit('grab-op-begin', a, 'move');
-    a.userSetRect({...a.rect, x: a.rect.x + 200, y: a.rect.y + 100});
-    display.emit('grab-op-end', a, 'move');
-    flushAll([a, b]);
-    check('move: follower moved with the dragged window', same(a.rect, b.rect),
-        JSON.stringify([a.rect, b.rect]));
+    const group = makeGroup([a, b]);
+    a.userSetRect(R(100, 100, 820, 600));
+    a.userSetRect(R(380, 300, 860, 600));
+    check('drag: follower gets no requests', b.requests.length === 0);
+    check('drag: frame follows the active window', same(group.frame, a.rect));
     group.destroy();
 }
 
-// 4. A full-width group dragged partly off screen keeps its followers with it.
+// 4. Activating a hidden tab shows it exactly once at the current frame and hides the old one.
 {
-    const a = new FakeWindow('a', R(0, 62, 1920, 1018));
-    const b = new FakeWindow('b', R(0, 62, 1920, 1018));
-    const {group, display} = makeGroup([a, b]);
+    const a = new FakeWindow('a', R(100, 100, 800, 600));
+    const b = new FakeWindow('b', R(0, 62, 1920, 1018), {maximized: true});
+    const group = makeGroup([a, b]);
+    a.userSetRect(R(380, 300, 860, 600));
+    b.activate(0);
     flushAll([a, b]);
-    display.emit('grab-op-begin', a, 'move');
-    a.userSetRect(R(380, 300, 1920, 1018));
-    display.emit('grab-op-end', a, 'move');
-    flushAll([a, b]);
-    check('offscreen move: follower is not clamped back', same(a.rect, b.rect),
-        JSON.stringify([a.rect, b.rect]));
+    check('switch: new tab shown and un-maximized', !b.minimized && !b.is_maximized());
+    check('switch: new tab placed at the frame once', b.requests.length === 1 && same(b.rect, a.rect),
+        JSON.stringify([b.requests, b.rect, a.rect]));
+    check('switch: old tab hidden', a.minimized);
+    check('switch: active updated', group.active === b);
     group.destroy();
 }
 
-// 5. Cleanup disconnects everything.
+// 5. Closing the active tab reveals its neighbour.
 {
-    const a = new FakeWindow('a', R(0, 100, 10, 10));
-    const b = new FakeWindow('b', R(0, 100, 10, 10));
-    const {group, display} = makeGroup([a, b]);
+    const a = new FakeWindow('a', R(100, 100, 800, 600));
+    const b = new FakeWindow('b', R(300, 300, 500, 400));
+    const c = new FakeWindow('c', R(500, 500, 400, 300));
+    const group = makeGroup([b, a, c], a);
+    a.emit('unmanaged');
+    flushAll([b, c]);
+    check('close active: next tab becomes active and visible', group.active === c && !c.minimized && same(c.rect, group.frame),
+        JSON.stringify([group.active?.name, c.rect, group.frame]));
+    check('close active: other tab stays hidden', b.minimized);
     group.destroy();
-    check('destroy: no handlers left', a.handlerCount() + b.handlerCount() + display.handlerCount() === 0);
+}
+
+// 6. Detaching and dissolving leave every window visible and disconnected.
+{
+    const a = new FakeWindow('a', R(100, 100, 800, 600));
+    const b = new FakeWindow('b', R(300, 300, 500, 400));
+    const c = new FakeWindow('c', R(500, 500, 400, 300));
+    const group = makeGroup([a, b, c]);
+    group.remove(b);
+    check('detach: removed window is visible', !b.minimized && !group.contains(b));
+    group.destroy();
+    check('destroy: all visible', !a.minimized && !c.minimized);
+    check('destroy: no handlers left', a.handlerCount() + b.handlerCount() + c.handlerCount() === 0);
 }
 
 if (failed) { print(`${failed} failed`); imports.system.exit(1); }

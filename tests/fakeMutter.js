@@ -87,6 +87,24 @@ export class FakeWindow extends Emitter {
         this.emit('notify::fullscreen');
     }
 
+    minimize() {
+        if (this.minimized)
+            return;
+        this.minimized = true;
+        this.emit('notify::minimized');
+    }
+
+    unminimize() {
+        if (!this.minimized)
+            return;
+        this.minimized = false;
+        this.emit('notify::minimized');
+    }
+
+    activate(_time) {
+        this.emit('focus');
+    }
+
     change_workspace(ws) {
         this._workspace = ws;
         this.emit('workspace-changed');
