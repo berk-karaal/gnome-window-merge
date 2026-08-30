@@ -1,4 +1,4 @@
-UUID = window-merge@berk
+UUID = window-merge@berk-karaal
 DEST = $(HOME)/.local/share/gnome-shell/extensions/$(UUID)
 
 .PHONY: schemas check test install nested zip

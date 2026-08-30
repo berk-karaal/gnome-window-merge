@@ -1,5 +1,5 @@
 {
-  "uuid": "window-merge@berk",
+  "uuid": "window-merge@berk-karaal",
   "name": "Window Merge",
   "description": "Merge all windows of an app into one tabbed frame, macOS style.",
   "shell-version": ["50"],

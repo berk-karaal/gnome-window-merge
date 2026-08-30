@@ -1,4 +1,4 @@
-import {STRIP_HEIGHT, stripRect, slotIndex, fillRect, clampFrame} from '../window-merge@berk/layout.js';
+import {STRIP_HEIGHT, stripRect, slotIndex, fillRect, clampFrame} from '../window-merge@berk-karaal/layout.js';
 
 let failed = 0;
 function eq(name, got, want) {

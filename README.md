@@ -26,7 +26,7 @@ Both are editable in the extension preferences.
 
     make install
 
-Then log out and back in (Wayland) and run `gnome-extensions enable window-merge@berk`.
+Then log out and back in (Wayland) and run `gnome-extensions enable window-merge@berk-karaal`.
 
 ## Develop
 
