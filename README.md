@@ -51,6 +51,12 @@ Log out and back in (Wayland loads extensions at login), then:
 
 Then log out and back in and run `gnome-extensions enable window-merge@berk-karaal`.
 
+### Update
+
+Repeat the same steps with the new zip or a fresh `git pull` — `--force` and
+`make install` both replace the installed copy — then log out and back in.
+The extension stays enabled and your shortcuts are kept.
+
 ## Develop
 
     make test     # unit tests (gjs)
